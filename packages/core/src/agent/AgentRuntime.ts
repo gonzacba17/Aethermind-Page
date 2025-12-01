@@ -13,13 +13,13 @@ export class AgentRuntime {
   private agentConfigs: Map<string, { config: AgentConfig; logic: AgentLogic }> = new Map();
   private providers: Map<string, LLMProvider> = new Map();
   private defaultProvider?: LLMProvider;
-  private emitter: EventEmitter.EventEmitter;
+  private emitter: EventEmitter;
   private logger: StructuredLogger;
   private runningExecutions: Set<string> = new Set();
   private maxConcurrentExecutions: number;
 
   constructor(config: AgentRuntimeConfig = {}) {
-    this.emitter = new EventEmitter.EventEmitter();
+    this.emitter = new EventEmitter();
     this.logger = new StructuredLogger({}, this.emitter);
     this.defaultProvider = config.defaultProvider;
     this.maxConcurrentExecutions = config.maxConcurrentExecutions || 10;
@@ -132,7 +132,7 @@ export class AgentRuntime {
     return () => this.emitter.off(event, handler);
   }
 
-  getEmitter(): EventEmitter.EventEmitter {
+  getEmitter(): EventEmitter {
     return this.emitter;
   }
 

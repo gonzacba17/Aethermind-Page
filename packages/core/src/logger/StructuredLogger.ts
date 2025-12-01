@@ -17,15 +17,15 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 
 export class StructuredLogger implements LoggerInterface {
   private config: StructuredLoggerConfig;
-  private emitter: EventEmitter.EventEmitter;
+  private emitter: EventEmitter;
   private logs: LogEntry[] = [];
 
-  constructor(config: StructuredLoggerConfig = {}, emitter?: EventEmitter.EventEmitter) {
+  constructor(config: StructuredLoggerConfig = {}, emitter?: EventEmitter) {
     this.config = {
       minLevel: 'debug',
       ...config,
     };
-    this.emitter = emitter || new EventEmitter.EventEmitter();
+    this.emitter = emitter || new EventEmitter();
   }
 
   private shouldLog(level: LogLevel): boolean {
@@ -109,7 +109,7 @@ export class StructuredLogger implements LoggerInterface {
     return () => this.emitter.off('log', callback);
   }
 
-  getEmitter(): EventEmitter.EventEmitter {
+  getEmitter(): EventEmitter {
     return this.emitter;
   }
 }

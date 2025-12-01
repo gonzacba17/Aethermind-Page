@@ -29,7 +29,7 @@ export interface WorkflowExecutionResult {
 
 export class WorkflowEngine {
   private orchestrator: Orchestrator;
-  private emitter: EventEmitter.EventEmitter;
+  private emitter: EventEmitter;
   private logger: StructuredLogger;
   private workflowDefinitions: Map<string, WorkflowDefinition> = new Map();
 

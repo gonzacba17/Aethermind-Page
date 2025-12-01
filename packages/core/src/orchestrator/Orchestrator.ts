@@ -25,7 +25,7 @@ interface PendingTask {
 export class Orchestrator {
   private runtime: AgentRuntime;
   private config: OrchestratorConfig;
-  private emitter: EventEmitter.EventEmitter;
+  private emitter: EventEmitter;
   private logger: StructuredLogger;
   private workflows: Map<string, WorkflowDefinition> = new Map();
   private taskQueueService: TaskQueueService;

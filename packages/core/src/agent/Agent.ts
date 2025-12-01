@@ -16,17 +16,17 @@ export class Agent {
   readonly id: string;
   readonly config: AgentConfig;
   private logic: AgentLogic;
-  private emitter: EventEmitter.EventEmitter;
+  private emitter: EventEmitter;
   private logger: StructuredLogger;
   private status: AgentStatus = 'idle';
   private stateManager: StateManager;
   private currentExecutionId?: string;
 
-  constructor(config: AgentConfig, logic: AgentLogic, emitter?: EventEmitter.EventEmitter) {
+  constructor(config: AgentConfig, logic: AgentLogic, emitter?: EventEmitter) {
     this.id = uuid();
     this.config = AgentConfigSchema.parse(config);
     this.logic = logic;
-    this.emitter = emitter || new EventEmitter.EventEmitter();
+    this.emitter = emitter || new EventEmitter();
     this.logger = new StructuredLogger({ agentId: this.id }, this.emitter);
     this.stateManager = new StateManager();
   }
@@ -180,7 +180,7 @@ export class Agent {
     return this.stateManager;
   }
 
-  getEmitter(): EventEmitter.EventEmitter {
+  getEmitter(): EventEmitter {
     return this.emitter;
   }
 }
@@ -195,7 +195,7 @@ class TimeoutError extends Error {
 export function createAgent(
   config: AgentConfig,
   logic: AgentLogic,
-  emitter?: EventEmitter.EventEmitter
+  emitter?: EventEmitter
 ): Agent {
   return new Agent(config, logic, emitter);
 }

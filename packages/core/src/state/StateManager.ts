@@ -10,11 +10,11 @@ export interface StateChange<T = unknown> {
 export class StateManager {
   private state: Map<string, unknown> = new Map();
   private history: StateChange[] = [];
-  private emitter: EventEmitter.EventEmitter;
+  private emitter: EventEmitter;
   private maxHistorySize: number;
 
   constructor(maxHistorySize = 1000) {
-    this.emitter = new EventEmitter.EventEmitter();
+    this.emitter = new EventEmitter();
     this.maxHistorySize = maxHistorySize;
   }
 
