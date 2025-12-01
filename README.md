@@ -46,7 +46,7 @@ pnpm dev:dashboard
 
 ```bash
 # Build de todo el monorepo
-pnpm -w build
+pnpm build
 
 # Typecheck
 pnpm typecheck
