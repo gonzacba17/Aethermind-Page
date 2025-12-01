@@ -10,7 +10,15 @@
       "Bash(pnpm install:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(rm:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(npx prisma:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": []
   }
