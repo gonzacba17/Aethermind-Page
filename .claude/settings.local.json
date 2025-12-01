@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(npm run dev:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(pnpm install:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
