@@ -13,7 +13,7 @@ const navigationLinks = [
 
 const ctaButton = {
   label: "Start Free",
-  href: "https://aethermind-agent-os-dashboard-x6zq.vercel.app/",
+  href: "https://aethermind-agent-os-dashboard.vercel.app/",
 }
 
 // Opcional: Selector de idioma/país (descomenta para usar)

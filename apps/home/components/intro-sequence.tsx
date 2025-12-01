@@ -53,7 +53,7 @@ export function IntroSequence() {
             className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6"
           >
             <a 
-              href="https://aethermind-agent-os-dashboard-x6zq.vercel.app/"
+              href="https://aethermind-agent-os-dashboard.vercel.app/"
               className="group px-8 py-4 bg-white text-black rounded-full font-semibold hover:scale-105 transition-all duration-300 flex flex-col items-center"
             >
               <span>Start Free</span>
