@@ -18,7 +18,9 @@
       "Bash(rm:*)",
       "Bash(pnpm typecheck:*)",
       "Bash(npx prisma:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(cat:*)",
+      "Bash(npm audit:*)"
     ],
     "deny": []
   }
