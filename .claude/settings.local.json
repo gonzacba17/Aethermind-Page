@@ -20,7 +20,18 @@
       "Bash(npx prisma:*)",
       "Bash(pnpm add:*)",
       "Bash(cat:*)",
-      "Bash(npm audit:*)"
+      "Bash(npm audit:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:nextjs.org)",
+      "Bash(pnpm run:*)",
+      "Bash(node:*)",
+      "Bash(pnpm store prune:*)",
+      "Bash(export NVM_DIR=\"$HOME/.nvm\")",
+      "Bash([ -s \"$NVM_DIR/nvm.sh\" ])",
+      "Bash(. \"$NVM_DIR/nvm.sh\")",
+      "Bash(nvm install:*)",
+      "Bash(nvm use:*)",
+      "Bash(nvm alias:*)"
     ],
     "deny": []
   }

@@ -1,4 +1,4 @@
-﻿import { PrismaClient, type Prisma } from '@prisma/client';
+﻿import { PrismaClient, Prisma } from '@prisma/client';
 import type { LogEntry, Trace, CostInfo, ExecutionResult, LogLevel, AgentStatus, TraceNode } from '@aethermind/core';
 import type { StoreInterface, PaginatedResult, AgentRecord } from './PostgresStore';
 
@@ -68,7 +68,7 @@ export class PrismaStore implements StoreInterface {
           userId: agent.userId,
           name: agent.name,
           model: agent.model,
-          config: agent.config as Prisma.InputJsonValue,
+          config: agent.config as any,
         },
       });
     } catch (error) {
@@ -164,7 +164,7 @@ export class PrismaStore implements StoreInterface {
           agentId: entry.agentId || null,
           level: entry.level,
           message: entry.message,
-          metadata: (entry.metadata ?? null) as Prisma.InputJsonValue,
+          metadata: (entry.metadata ?? null) as any,
           timestamp: entry.timestamp,
         },
       });
@@ -249,12 +249,12 @@ export class PrismaStore implements StoreInterface {
       await this.prisma.trace.upsert({
         where: { id: trace.id },
         update: {
-          treeData: trace.rootNode as unknown as Prisma.InputJsonValue,
+          treeData: trace.rootNode as any,
         },
         create: {
           id: trace.id,
           executionId: trace.executionId,
-          treeData: trace.rootNode as unknown as Prisma.InputJsonValue,
+          treeData: trace.rootNode as any,
           createdAt: trace.createdAt,
         },
       });
@@ -412,7 +412,7 @@ export class PrismaStore implements StoreInterface {
         where: { id: result.executionId },
         update: {
           status: result.status,
-          output: result.output as Prisma.InputJsonValue,
+          output: result.output as any,
           error: result.error?.message || null,
           completedAt: result.completedAt,
           durationMs: result.duration,
@@ -422,8 +422,8 @@ export class PrismaStore implements StoreInterface {
           userId: result.userId,
           agentId: result.agentId,
           status: result.status,
-          input: result.output as Prisma.InputJsonValue,
-          output: result.output as Prisma.InputJsonValue,
+          input: result.output as any,
+          output: result.output as any,
           error: result.error?.message || null,
           startedAt: result.startedAt,
           completedAt: result.completedAt,
