@@ -38,7 +38,7 @@ const capabilities = [
 
 export function CapacidadesSection() {
   return (
-    <section className="relative py-16 px-6">
+    <section className="relative py-32 px-6">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <motion.div

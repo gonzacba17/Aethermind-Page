@@ -5,7 +5,7 @@ import { Quote } from "lucide-react"
 
 export function SocialProof() {
   return (
-    <section className="relative flex items-center justify-center px-6 py-16">
+    <section className="relative flex items-center justify-center px-6 py-32">
       <div className="max-w-5xl mx-auto w-full">
         
         <motion.div

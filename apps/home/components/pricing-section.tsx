@@ -58,7 +58,7 @@ export function PricingSection() {
   ]
 
   return (
-    <section id="pricing" className="relative flex items-center justify-center px-6 py-16">
+    <section id="pricing" className="relative flex items-center justify-center px-6 py-32">
       <div className="max-w-7xl mx-auto w-full">
         
         <motion.div

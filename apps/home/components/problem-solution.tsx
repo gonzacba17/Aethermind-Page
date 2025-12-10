@@ -5,7 +5,7 @@ import { DollarSign, Network, BarChart3, AlertCircle } from "lucide-react"
 
 export function ProblemSolution() {
   return (
-    <section className="relative flex items-center justify-center px-6 py-16">
+    <section className="relative flex items-center justify-center px-6 py-32">
       <div className="max-w-6xl mx-auto w-full">
         
         <motion.div 
