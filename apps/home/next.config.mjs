@@ -9,21 +9,6 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/',
-        destination: 'https://aethermind-agent-os-dashboard.vercel.app/',
-        permanent: true,
-      },
-      {
-        source: '/signup',
-        destination: 'https://aethermind-agent-os-dashboard.vercel.app/',
-        permanent: true,
-      },
-      {
-        source: '/register',
-        destination: 'https://aethermind-agent-os-dashboard.vercel.app/',
-        permanent: true,
-      },
-      {
         source: '/dashboard',
         destination: 'https://aethermind-agent-os-dashboard.vercel.app/',
         permanent: true,

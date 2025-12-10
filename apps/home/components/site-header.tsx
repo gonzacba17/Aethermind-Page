@@ -13,7 +13,7 @@ const navigationLinks = [
 
 const ctaButton = {
   label: "Start Free",
-  href: "https://aethermind-agent-os-dashboard.vercel.app/",
+  href: "/signup",
 }
 
 // Opcional: Selector de idioma/país (descomenta para usar)
@@ -90,6 +90,13 @@ export function SiteHeader() {
                   {link.label}
                 </Link>
               ))}
+
+              <Link
+                href="/login"
+                className="text-sm text-neutral-400 transition-colors hover:text-white"
+              >
+                Sign In
+              </Link>
 
               <Link
                 href={ctaButton.href}
@@ -193,6 +200,19 @@ export function SiteHeader() {
                         </Link>
                       </motion.li>
                     ))}
+                    <motion.li
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: navigationLinks.length * 0.05 }}
+                    >
+                      <Link
+                        href="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="block border-b border-white/5 py-4 text-lg tracking-wide text-neutral-300 transition-colors hover:text-white focus:text-white focus:outline-none"
+                      >
+                        Sign In
+                      </Link>
+                    </motion.li>
                   </ul>
                 </nav>
 

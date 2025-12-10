@@ -18,7 +18,7 @@ export function PricingSection() {
         "Basic cost tracking"
       ],
       cta: "Start Free",
-      href: "https://aethermind-agent-os-dashboard.vercel.app/",
+      href: "/signup",
       highlighted: false
     },
     {
@@ -35,7 +35,7 @@ export function PricingSection() {
         "Webhook notifications"
       ],
       cta: "Start Trial",
-      href: "https://aethermind-agent-os-dashboard.vercel.app/?plan=starter",
+      href: "/signup?plan=starter",
       highlighted: true
     },
     {
@@ -52,7 +52,7 @@ export function PricingSection() {
         "Export data"
       ],
       cta: "Start Trial",
-      href: "https://aethermind-agent-os-dashboard.vercel.app/?plan=pro",
+      href: "/signup?plan=pro",
       highlighted: false
     }
   ]
