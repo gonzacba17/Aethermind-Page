@@ -31,7 +31,9 @@
       "Bash(. \"$NVM_DIR/nvm.sh\")",
       "Bash(nvm install:*)",
       "Bash(nvm use:*)",
-      "Bash(nvm alias:*)"
+      "Bash(nvm alias:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }
