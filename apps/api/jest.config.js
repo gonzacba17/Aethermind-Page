@@ -20,6 +20,7 @@ export default {
   testMatch: [
     '**/tests/unit/**/*.test.ts',
     '**/tests/unit/**/*.spec.ts',
+    '**/tests/integration/**/*.test.ts',
     '**/src/**/__tests__/**/*.test.ts',
   ],
   collectCoverageFrom: [
@@ -31,4 +32,12 @@ export default {
   verbose: true,
   testTimeout: 10000,
   rootDir: '.',
+  coverageThreshold: {
+    global: {
+      lines: 60,
+      statements: 60,
+      functions: 60,
+      branches: 50,
+    },
+  },
 };

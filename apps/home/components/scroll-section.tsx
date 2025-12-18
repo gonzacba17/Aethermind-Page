@@ -28,7 +28,7 @@ export function ScrollSection({ title, subtitle, children, direction = "left" }:
           <h2 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">{title}</h2>
           {subtitle && <p className="mt-4 text-sm tracking-[0.2em] text-neutral-500 uppercase">{subtitle}</p>}
         </motion.div>
-        <motion.div style={{ x, opacity }}>{children}</motion.div>
+        <motion.div style={{ x, opacity }}>{children as any}</motion.div>
       </div>
     </section>
   )

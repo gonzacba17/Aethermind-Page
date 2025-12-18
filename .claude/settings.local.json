@@ -33,7 +33,14 @@
       "Bash(nvm use:*)",
       "Bash(nvm alias:*)",
       "Bash(npm install:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm audit:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm update:*)",
+      "Bash(pnpm test:*)",
+      "Bash(git rm:*)",
+      "Bash(nvm:*)"
     ],
     "deny": []
   }
