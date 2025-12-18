@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "pnpm install && pnpm -w build",
-  "installCommand": "pnpm install",
+  "buildCommand": "pnpm install --no-frozen-lockfile && pnpm -w build",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "builds": [
     {
       "src": "apps/home/package.json",
