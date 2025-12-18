@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 
 const navigationLinks = [
-  { label: "Features", href: "/#features" },
   { label: "Pricing", href: "/#pricing" },
   { label: "Docs", href: "/docs" },
   { label: "GitHub", href: "https://github.com/aethermind/agentos", external: true },
