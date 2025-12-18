@@ -44,7 +44,7 @@ function LoginForm() {
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
 
-      window.location.href = 'https://aethermind-agent-os-dashboard.vercel.app/dashboard'
+      router.push('/onboarding/welcome')
 
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')

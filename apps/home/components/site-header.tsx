@@ -93,16 +93,9 @@ export function SiteHeader() {
 
               <Link
                 href="/login"
-                className="text-sm text-neutral-400 transition-colors hover:text-white"
-              >
-                Sign In
-              </Link>
-
-              <Link
-                href={ctaButton.href}
                 className="px-6 py-2 bg-white text-black rounded-full text-sm font-semibold hover:scale-105 transition-transform"
               >
-                {ctaButton.label}
+                Sign In
               </Link>
             </div>
 
@@ -215,16 +208,6 @@ export function SiteHeader() {
                     </motion.li>
                   </ul>
                 </nav>
-
-                <div className="border-t border-white/10 p-6">
-                  <Link
-                    href={ctaButton.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block w-full rounded-full bg-white py-4 text-center text-sm font-semibold text-black transition-transform hover:scale-105"
-                  >
-                    {ctaButton.label}
-                  </Link>
-                </div>
               </div>
             </motion.div>
           </>

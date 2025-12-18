@@ -56,7 +56,7 @@ export function IntroSequence() {
               href="/signup"
               className="group px-8 py-4 bg-white text-black rounded-full font-semibold hover:scale-105 transition-all duration-300 flex flex-col items-center"
             >
-              <span>Start Free</span>
+              <span>Get Started</span>
               <span className="text-neutral-600 text-sm">100 executions/month</span>
             </a>
             
