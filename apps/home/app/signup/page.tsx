@@ -31,7 +31,7 @@ export default function SignupPage() {
     setLoading(true)
     
     try {
-      const res = await fetch('https://caboose.proxy.rlwy.net:35361/api/auth/signup', {
+      const res = await fetch('https://aethermindapi-production.up.railway.app/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -57,11 +57,11 @@ export default function SignupPage() {
   }
 
   const handleGoogleSignup = () => {
-    window.location.href = 'https://caboose.proxy.rlwy.net:35361/api/auth/google';
+    window.location.href = 'https://aethermindapi-production.up.railway.app/api/auth/google';
   };
 
   const handleGitHubSignup = () => {
-    window.location.href = 'https://caboose.proxy.rlwy.net:35361/api/auth/github';
+    window.location.href = 'https://aethermindapi-production.up.railway.app/api/auth/github';
   };
 
   return (

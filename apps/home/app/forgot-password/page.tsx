@@ -15,7 +15,7 @@ export default function ForgotPasswordPage() {
 
     try {
       // Check if backend endpoint exists, otherwise show coming soon message
-      const res = await fetch('https://caboose.proxy.rlwy.net:35361/api/auth/forgot-password', {
+      const res = await fetch('https://aethermindapi-production.up.railway.app/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })

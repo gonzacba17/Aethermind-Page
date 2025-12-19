@@ -29,7 +29,7 @@ export default function ApiDocsPage() {
             <div>
               <h3 className="font-semibold text-white mb-2">Base URL</h3>
               <code className="text-sm bg-zinc-800 px-3 py-1 rounded text-blue-400">
-                https://caboose.proxy.rlwy.net:35361
+                https://aethermindapi-production.up.railway.app
               </code>
             </div>
           </div>
