@@ -27,6 +27,12 @@ export async function authMiddleware(
   res: Response,
   next: NextFunction
 ): Promise<void> {
+  // Skip API key check for /auth routes (OAuth, login, signup, etc.)
+  if (req.path.startsWith('/auth')) {
+    next();
+    return;
+  }
+
   if (!authConfig.enabled) {
     next();
     return;
