@@ -9,24 +9,29 @@ datasource db {
 }
 
 model User {
-  id               String      @id @default(cuid())
-  email            String      @unique @db.VarChar(255)
-  passwordHash     String      @map("password_hash") @db.VarChar(255)
-  apiKey           String      @unique @map("api_key") @db.VarChar(255)
-  plan             String      @default("free") @db.VarChar(50)
-  usageLimit       Int         @default(100) @map("usage_limit")
-  usageCount       Int         @default(0) @map("usage_count")
-  stripeCustomerId String?     @unique @map("stripe_customer_id") @db.VarChar(255)
-  stripeSubscriptionId String? @map("stripe_subscription_id") @db.VarChar(255)
-  emailVerified    Boolean     @default(false) @map("email_verified")
-  verificationToken String?    @map("verification_token") @db.VarChar(255)
-  resetToken       String?     @map("reset_token") @db.VarChar(255)
-  resetTokenExpiry DateTime?   @map("reset_token_expiry") @db.Timestamptz(6)
-  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
-  agents           Agent[]
-  workflows        Workflow[]
-  executions       Execution[]
+  id                     String         @id @default(cuid())
+  email                  String         @unique @db.VarChar(255)
+  passwordHash           String?        @map("password_hash") @db.VarChar(255) // Nullable for OAuth-only users
+  name                   String?        @db.VarChar(255) // Added for OAuth
+  image                  String?        @db.Text // Added for OAuth profile picture
+  apiKey                 String         @unique @map("api_key") @db.VarChar(255)
+  plan                   String         @default("free") @db.VarChar(50)
+  usageLimit             Int            @default(100) @map("usage_limit")
+  usageCount             Int            @default(0) @map("usage_count")
+  stripeCustomerId       String?        @unique @map("stripe_customer_id") @db.VarChar(255)
+  stripeSubscriptionId   String?        @map("stripe_subscription_id") @db.VarChar(255)
+  emailVerified          Boolean        @default(false) @map("email_verified")
+  hasCompletedOnboarding Boolean        @default(false) @map("has_completed_onboarding") // Added for onboarding flow
+  verificationToken      String?        @map("verification_token") @db.VarChar(255)
+  resetToken             String?        @map("reset_token") @db.VarChar(255)
+  resetTokenExpiry       DateTime?      @map("reset_token_expiry") @db.Timestamptz(6)
+  createdAt              DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  agents                 Agent[]
+  workflows              Workflow[]
+  executions             Execution[]
+  oauthAccounts          OAuthAccount[] // Added for OAuth
+  sessions               Session[] // Added for session management
 
   @@index([email], map: "idx_users_email")
   @@index([apiKey], map: "idx_users_api_key")
@@ -140,4 +145,38 @@ model Workflow {
   @@unique([userId, name], map: "idx_workflows_user_name")
   @@index([userId], map: "idx_workflows_user_id")
   @@map("workflows")
+}
+
+model OAuthAccount {
+  id                String    @id @default(cuid()) @db.VarChar(255)
+  userId            String    @map("user_id")
+  provider          String    @db.VarChar(50) // 'google' or 'github'
+  providerAccountId String    @map("provider_account_id") @db.VarChar(255)
+  accessToken       String?   @map("access_token") @db.Text
+  refreshToken      String?   @map("refresh_token") @db.Text
+  expiresAt         DateTime? @map("expires_at") @db.Timestamptz(6)
+  tokenType         String?   @map("token_type") @db.VarChar(50)
+  scope             String?   @db.Text
+  idToken           String?   @map("id_token") @db.Text
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId], map: "idx_oauth_provider_account")
+  @@index([userId], map: "idx_oauth_user_id")
+  @@map("oauth_accounts")
+}
+
+model Session {
+  id        String   @id @default(cuid()) @db.VarChar(255)
+  userId    String   @map("user_id")
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId], map: "idx_sessions_user_id")
+  @@index([token], map: "idx_sessions_token")
+  @@map("sessions")
 }

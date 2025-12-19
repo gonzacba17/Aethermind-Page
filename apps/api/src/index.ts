@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import session from 'express-session';
+import passport from './config/passport.config.js';
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 import { createRuntime, createOrchestrator, createWorkflowEngine, createOpenAIProvider, createAnthropicProvider, createConfigWatcher, TaskQueueService } from '@aethermind/core';
@@ -186,6 +188,24 @@ async function startServer(): Promise<void> {
   }));
   app.use(cors(corsOptions));
   app.use(express.json({ limit: REQUEST_BODY_LIMIT }));
+  app.use(express.urlencoded({ extended: true }));
+  
+  // Session configuration (required for Passport)
+  app.use(session({
+    secret: process.env['JWT_SECRET'] || 'aethermind-session-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env['NODE_ENV'] === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+  }));
+  
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+  
   app.use(limiter);
 
   app.get('/health', (_req, res) => {
