@@ -2,10 +2,10 @@
   "name": "aethermind-landing",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@8.15.0",
   "engines": {
     "node": ">=20.9.0",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=6.0.0"
   },
   "scripts": {
     "dev": "cd apps/home && pnpm dev",
