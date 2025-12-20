@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { authAPI } from '@/lib/api/auth'
+import { redirectAfterAuth } from '@/lib/auth-utils'
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -31,23 +33,14 @@ export default function SignupPage() {
     setLoading(true)
     
     try {
-      const res = await fetch('https://aethermindapi-production.up.railway.app/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        })
+      const { user } = await authAPI.signup({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
       })
       
-      const data = await res.json()
-      
-      if (!res.ok) {
-        throw new Error(data.message || 'Something went wrong')
-      }
-      
-      router.push('/login?registered=true')
+      // Smart redirect based on membership
+      await redirectAfterAuth(user)
       
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -57,11 +50,11 @@ export default function SignupPage() {
   }
 
   const handleGoogleSignup = () => {
-    window.location.href = 'https://aethermindapi-production.up.railway.app/api/auth/google';
+    authAPI.loginWithGoogle();
   };
 
   const handleGitHubSignup = () => {
-    window.location.href = 'https://aethermindapi-production.up.railway.app/api/auth/github';
+    authAPI.loginWithGitHub();
   };
 
   return (

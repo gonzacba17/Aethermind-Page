@@ -2,6 +2,8 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { authAPI } from '@/lib/api/auth'
+import { redirectAfterAuth, saveToken } from '@/lib/auth-utils'
 
 function LoginForm() {
   const [formData, setFormData] = useState({
@@ -18,7 +20,7 @@ function LoginForm() {
   useEffect(() => {
     // Success message if coming from signup
     if (searchParams.get('registered') === 'true') {
-      setSuccessMessage('Account created successfully! Please sign in.'); // Keep existing message for display
+      setSuccessMessage('Account created successfully! Please sign in.');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
     }
@@ -26,9 +28,9 @@ function LoginForm() {
     // Handle OAuth callback token
     const token = searchParams.get('token');
     if (token) {
-      localStorage.setItem('token', token);
-      // Redirect to dashboard after OAuth login
-      window.location.href = 'https://aethermind-agent-os-dashboard.vercel.app/dashboard';
+      saveToken(token);
+      // Redirect with smart logic after OAuth
+      redirectAfterAuth();
       return;
     }
 
@@ -51,30 +53,13 @@ function LoginForm() {
     setLoading(true)
 
     try {
-      const res = await fetch('https://aethermindapi-production.up.railway.app/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        })
+      const { user } = await authAPI.login({
+        email: formData.email,
+        password: formData.password
       })
 
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Invalid credentials')
-      }
-
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user', JSON.stringify(data.user))
-
-      // Smart redirect: new users → onboarding, existing users → dashboard
-      if (searchParams.get('registered') === 'true') {
-        router.push('/onboarding/welcome')
-      } else {
-        window.location.href = 'https://aethermind-agent-os-dashboard.vercel.app/dashboard'
-      }
+      // Smart redirect based on membership
+      await redirectAfterAuth(user)
 
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -84,11 +69,11 @@ function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
-    window.location.href = 'https://aethermindapi-production.up.railway.app/api/auth/google';
+    authAPI.loginWithGoogle();
   };
 
   const handleGitHubLogin = () => {
-    window.location.href = 'https://aethermindapi-production.up.railway.app/api/auth/github';
+    authAPI.loginWithGitHub();
   };
 
   return (
