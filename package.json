@@ -2,16 +2,14 @@
   "name": "aethermind-landing",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@8.15.0",
   "engines": {
-    "node": ">=20.9.0",
-    "pnpm": ">=6.0.0"
+    "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "cd apps/home && pnpm dev",
-    "build": "cd apps/home && pnpm build",
-    "start": "cd apps/home && pnpm start",
-    "lint": "cd apps/home && pnpm lint",
-    "typecheck": "cd apps/home && pnpm typecheck"
+    "dev": "cd apps/home && npm run dev",
+    "build": "cd apps/home && npm run build",
+    "start": "cd apps/home && npm start",
+    "lint": "cd apps/home && npm run lint",
+    "typecheck": "cd apps/home && npm run typecheck"
   }
 }
