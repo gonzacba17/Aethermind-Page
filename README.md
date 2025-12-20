@@ -1,100 +1,83 @@
-# Aethermind Monorepo
+# Aethermind Landing Page
 
-Monorepo configurado con Turborepo para desplegar en Vercel.
+Landing page y autenticación para Aethermind AgentOS.
 
 ## 📂 Estructura
 
 ```
 /
 ├── apps/
-│   ├── home/          # Frontend (Landing page + Dashboard)
-│   └── api/           # Backend (AgentOS API + WebSockets)
-├── packages/
-│   ├── core/          # Lógica compartida del core
-│   ├── sdk/           # SDK de Aethermind
-│   └── dashboard/     # Componentes del dashboard
-├── prisma/            # Esquema de base de datos
-├── turbo.json         # Configuración de Turborepo
-├── pnpm-workspace.yaml
-├── vercel.json        # Configuración de despliegue
-└── package.json       # Scripts del monorepo
+│   └── home/          # Landing page (Next.js 16)
+│       ├── app/       # Páginas (landing, login, signup, etc.)
+│       ├── components/
+│       └── public/
+├── .nvmrc
+├── package.json
+└── vercel.json        # Deploy config
 ```
 
-## 🚀 Instalación
+## 🚀 Funcionalidad
+
+- **Landing page** de marketing
+- **Login/Signup** con redirección a dashboard externo
+- Páginas estáticas (About, Pricing, Terms, etc.)
+- Integración con Stripe para pagos de membresía
+
+### Flujo de Usuario
+
+```
+Landing → Login/Signup → Dashboard externo
+https://aethermind-page.vercel.app → https://aethermind-agent-os-dashboard.vercel.app
+```
+
+## 💻 Desarrollo
+
+### Instalación
 
 ```bash
 pnpm install
 ```
 
-## 💻 Desarrollo
+### Ejecutar en desarrollo
 
 ```bash
-# Ejecutar todos los proyectos
 pnpm dev
-
-# Solo frontend
-pnpm dev:home
-
-# Solo backend
-pnpm dev:api
-
-# Solo dashboard
-pnpm dev:dashboard
+# Abre http://localhost:3001
 ```
 
-## 🏗️ Build
+### Build
 
 ```bash
-# Build de todo el monorepo
 pnpm build
-
-# Typecheck
-pnpm typecheck
+pnpm start
 ```
-
-## 📦 Rutas en Producción
-
-- `/` - Landing page (apps/home)
-- `/dashboard` - Dashboard de AgentOS (apps/home/app/dashboard)
-- `/api/*` - Backend API (apps/api)
 
 ## 🔧 Variables de Entorno
 
-Crear archivo `.env` en la raíz:
+Crear archivo `.env.local`:
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/aethermind"
-JWT_SECRET="your-secret-key-here"
-PORT=4000
-NODE_ENV=production
+NEXT_PUBLIC_DASHBOARD_URL=https://aethermind-agent-os-dashboard.vercel.app
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_...
 ```
 
 ## 📤 Despliegue en Vercel
 
 1. Conectar el repositorio a Vercel
-2. Vercel detectará automáticamente:
-   - **Frontend**: `apps/home` (Next.js)
-   - **Backend**: `apps/api` (Node.js)
-3. El `vercel.json` configura el routing:
-   - `/api/*` → Backend
-   - `/*` → Frontend
-4. Configurar las variables de entorno en Vercel Dashboard
-
-## ✅ Configuración Completa
-
-- ✅ Estructura de monorepo
-- ✅ Turborepo configurado
-- ✅ Frontend en apps/home
-- ✅ Backend en apps/api
-- ✅ Packages compartidos (core, sdk)
-- ✅ Dashboard integrado en /dashboard
-- ✅ vercel.json con routing
-- ✅ pnpm workspace
-- ✅ Scripts de build
+2. Vercel detectará automáticamente Next.js
+3. Configurar las variables de entorno en Vercel Dashboard
+4. Deploy automático en cada push a `main`
 
 ## 📝 Notas
 
-- El backend soporta WebSockets
-- No se modificó la lógica interna de core, sdk o api
-- El frontend consume la API vía rutas relativas `/api/...`
-- Compatible con despliegue en Vercel sin cambios adicionales
+- El **dashboard** y **backend API** están en un repositorio separado
+- Este repo solo contiene la landing page y formularios de auth
+- Después de login exitoso, redirige a: `https://aethermind-agent-os-dashboard.vercel.app`
+
+## 🛠️ Stack Tecnológico
+
+- Next.js 16
+- React 18
+- TailwindCSS 4
+- Radix UI components
+- TypeScript

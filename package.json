@@ -1,5 +1,5 @@
 {
-  "name": "aethermind-monorepo",
+  "name": "aethermind-landing",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@9.0.0",
@@ -8,23 +8,10 @@
     "pnpm": ">=8.0.0"
   },
   "scripts": {
-    "dev": "turbo run dev",
-    "dev:home": "cd apps/home && pnpm dev",
-    "dev:api": "cd apps/api && pnpm dev",
-    "dev:dashboard": "cd packages/dashboard && pnpm dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
-    "start": "turbo run start",
-    "clean": "turbo run clean && rimraf node_modules"
-  },
-  "devDependencies": {
-    "turbo": "^2.6.1",
-    "rimraf": "^5.0.10",
-    "typescript": "^5.4.0"
-  },
-  "dependencies": {
-    "@prisma/client": "^6.19.0",
-    "prisma": "^6.19.0"
+    "dev": "cd apps/home && pnpm dev",
+    "build": "cd apps/home && pnpm build",
+    "start": "cd apps/home && pnpm start",
+    "lint": "cd apps/home && pnpm lint",
+    "typecheck": "cd apps/home && pnpm typecheck"
   }
 }
