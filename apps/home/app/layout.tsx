@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
+import { ErrorBoundary } from "@/components/error-boundary"
 import "./globals.css"
 
 const geistSans = Geist({ subsets: ["latin"] })
@@ -43,7 +44,9 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`} suppressHydrationWarning>
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
         <Analytics />
       </body>
     </html>

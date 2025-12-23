@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { API_BASE_URL } from '@/lib/config';
 
 export interface User {
   id: string;
@@ -26,8 +27,6 @@ export interface LoginData {
   email: string;
   password: string;
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://aethermindapi-production.up.railway.app/api';
 
 export const authAPI = {
   /**

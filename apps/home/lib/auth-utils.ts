@@ -1,81 +1,110 @@
-import { User, authAPI } from './api/auth';
-
-const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://aethermind-agent-os-dashboard.vercel.app';
+import { User } from './api/auth';
+import { config } from './config';
 
 /**
- * Save JWT token to localStorage
+ * Save authentication token to storage
+ * @param token JWT token from backend
+ * @param rememberMe Whether to use persistent storage (localStorage) or session storage
  */
-export function saveToken(token: string): void {
-  if (typeof window !== 'undefined') {
+export function saveToken(token: string, rememberMe = false) {
+  if (typeof window === 'undefined') return;
+
+  if (rememberMe) {
+    // Persistent storage - survives browser close
     localStorage.setItem('token', token);
+    localStorage.setItem('rememberMe', 'true');
+  } else {
+    // Session storage - cleared when browser closes
+    sessionStorage.setItem('token', token);
+    localStorage.removeItem('rememberMe');
   }
 }
 
 /**
- * Get JWT token from localStorage
+ * Get authentication token from storage
+ * Checks both localStorage (persistent) and sessionStorage
  */
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
-}
 
-/**
- * Remove JWT token from localStorage
- */
-export function removeToken(): void {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  // Check if user had "remember me" enabled
+  const rememberMe = localStorage.getItem('rememberMe') === 'true';
+
+  if (rememberMe) {
+    return localStorage.getItem('token');
+  } else {
+    // Check session storage first, fallback to localStorage
+    return sessionStorage.getItem('token') || localStorage.getItem('token');
   }
 }
 
 /**
- * Check if user is authenticated
+ * Remove authentication token from all storage
  */
-export function isAuthenticated(): boolean {
-  return getToken() !== null;
+export function removeToken() {
+  if (typeof window === 'undefined') return;
+
+  localStorage.removeItem('token');
+  localStorage.removeItem('rememberMe');
+  sessionStorage.removeItem('token');
 }
 
 /**
- * Smart redirect after authentication
- * - If user has no membership → /pricing
- * - If user has active membership → Dashboard
+ * Check if Remember Me is enabled
  */
-export async function redirectAfterAuth(user?: User): Promise<void> {
+export function isRememberMeEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('rememberMe') === 'true';
+}
+
+/**
+ * Redirect user after successful authentication
+ * Smart redirect based on membership status
+ * @param user Optional user object to check membership
+ */
+export async function redirectAfterAuth(user?: User) {
+  if (typeof window === 'undefined') return;
+
   try {
-    // If user not provided, fetch from API
+    // If no user provided, try to fetch from API
     if (!user) {
-      user = await authAPI.getCurrentUser();
+      const token = getToken();
+      if (!token) {
+        window.location.href = '/pricing?checkout=true';
+        return;
+      }
+
+      // Fetch user info to check membership
+      const response = await fetch(`${config.apiUrl}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        window.location.href = '/pricing?checkout=true';
+        return;
+      }
+
+      user = await response.json();
     }
 
     // Check if user has active membership
-    const hasMembership = authAPI.hasActiveMembership(user);
+    const hasActiveMembership = user && (
+      (user.plan && user.plan !== 'free') ||
+      (user.subscription && user.subscription.status === 'active')
+    );
 
-    if (hasMembership) {
-      // Has membership → Redirect to dashboard
-      window.location.href = `${DASHBOARD_URL}/dashboard`;
+    if (hasActiveMembership) {
+      // User has membership, redirect to dashboard
+      window.location.href = `${config.dashboardUrl}/dashboard`;
     } else {
-      // No membership → Redirect to pricing page
+      // User doesn't have membership, redirect to pricing
       window.location.href = '/pricing?checkout=true';
     }
   } catch (error) {
     console.error('Error during redirect:', error);
-    // Fallback: redirect to pricing
+    // Fallback to pricing page on error
     window.location.href = '/pricing';
   }
-}
-
-/**
- * Redirect to dashboard directly
- */
-export function redirectToDashboard(): void {
-  window.location.href = `${DASHBOARD_URL}/dashboard`;
-}
-
-/**
- * Redirect to pricing page
- */
-export function redirectToPricing(checkout = false): void {
-  const url = checkout ? '/pricing?checkout=true' : '/pricing';
-  window.location.href = url;
 }

@@ -1,51 +1,38 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
 import { authAPI } from '@/lib/api/auth'
 import { redirectAfterAuth } from '@/lib/auth-utils'
+import { signupSchema, type SignupFormData } from '@/lib/validations/auth'
 
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  })
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+  })
+
+  const onSubmit = async (data: SignupFormData) => {
     setError('')
-    
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-    
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
-    
-    setLoading(true)
-    
+
     try {
       const { user } = await authAPI.signup({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
+        name: data.name,
+        email: data.email,
+        password: data.password,
       })
-      
+
       // Smart redirect based on membership
       await redirectAfterAuth(user)
-      
+
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -71,7 +58,7 @@ export default function SignupPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-zinc-300">
               Full Name
@@ -79,12 +66,13 @@ export default function SignupPage() {
             <input
               id="name"
               type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              {...register('name')}
               className="mt-1 block w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
               placeholder="John Doe"
-              required
             />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>
+            )}
           </div>
 
           <div>
@@ -94,12 +82,13 @@ export default function SignupPage() {
             <input
               id="email"
               type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              {...register('email')}
               className="mt-1 block w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
               placeholder="you@example.com"
-              required
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
+            )}
           </div>
 
           <div>
@@ -109,14 +98,14 @@ export default function SignupPage() {
             <input
               id="password"
               type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              {...register('password')}
               className="mt-1 block w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
               placeholder="••••••••"
-              minLength={8}
-              required
             />
-            <p className="mt-1 text-xs text-zinc-500">Must be at least 8 characters</p>
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>
+            )}
+            <p className="mt-1 text-xs text-zinc-500">Must be at least 8 characters with uppercase, lowercase, and number</p>
           </div>
 
           <div>
@@ -126,20 +115,21 @@ export default function SignupPage() {
             <input
               id="confirmPassword"
               type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              {...register('confirmPassword')}
               className="mt-1 block w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
               placeholder="••••••••"
-              required
             />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-400">{errors.confirmPassword.message}</p>
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className="w-full bg-white text-black py-3 px-4 rounded-lg font-medium hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            {isSubmitting ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 

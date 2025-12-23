@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    root: '../../',
+  },
   images: {
     unoptimized: false,
     formats: ['image/webp', 'image/avif'],

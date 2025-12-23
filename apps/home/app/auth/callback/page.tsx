@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { saveToken } from '@/lib/auth-utils';
 import { redirectAfterAuth } from '@/lib/auth-utils';
@@ -8,8 +8,13 @@ import { redirectAfterAuth } from '@/lib/auth-utils';
 function CallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple executions in React StrictMode or fast navigation
+    if (hasProcessed.current) return;
+    hasProcessed.current = true;
+
     const token = searchParams.get('token');
     const error = searchParams.get('error');
 
@@ -51,6 +56,3 @@ export default function AuthCallbackPage() {
     </Suspense>
   );
 }
-
-// Need to import Suspense
-import { Suspense } from 'react';

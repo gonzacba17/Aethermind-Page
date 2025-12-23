@@ -4,7 +4,17 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getToken } from '@/lib/auth-utils';
+import { config } from '@/lib/config';
 import { Check, Sparkles, Zap, Crown } from 'lucide-react';
+
+// Helper function to validate and get Stripe priceId
+function getStripePriceId(): string {
+  const priceId = config.stripe.proPriceId;
+  if (!priceId && typeof window !== 'undefined') {
+    console.error('NEXT_PUBLIC_STRIPE_PRO_PRICE_ID is not configured');
+  }
+  return priceId;
+}
 
 const plans = [
   {
@@ -31,7 +41,7 @@ const plans = [
   {
     name: 'Pro',
     price: '$49',
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID || 'price_pro',
+    priceId: getStripePriceId(),
     description: 'For professionals scaling their AI operations',
     features: [
       'Unlimited AI Agents',
@@ -96,8 +106,7 @@ function PricingContent() {
         window.location.href = '/contact?plan=enterprise';
       } else if (planName === 'Free') {
         // Free plan, just go to dashboard
-        const dashboardUrl = process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://aethermind-agent-os-dashboard.vercel.app';
-        window.location.href = `${dashboardUrl}/dashboard`;
+        window.location.href = `${config.dashboardUrl}/dashboard`;
       }
       return;
     }
@@ -115,9 +124,7 @@ function PricingContent() {
       }
 
       // Call backend to create Stripe Checkout session
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://aethermindapi-production.up.railway.app/api';
-      
-      const response = await fetch(`${apiUrl}/stripe/create-checkout-session`, {
+      const response = await fetch(`${config.apiUrl}/stripe/create-checkout-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

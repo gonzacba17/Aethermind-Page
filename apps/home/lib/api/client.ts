@@ -1,5 +1,4 @@
-// API Base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://aethermindapi-production.up.railway.app/api';
+import { API_BASE_URL } from '@/lib/config';
 
 export interface ApiError {
   message: string;
@@ -18,9 +17,9 @@ export class ApiClient {
   ): Promise<T> {
     const token = this.getToken();
     
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string> || {}),
     };
 
     if (token) {
