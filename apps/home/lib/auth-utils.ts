@@ -65,28 +65,39 @@ export function isRememberMeEnabled(): boolean {
 export async function redirectAfterAuth(user?: User) {
   if (typeof window === 'undefined') return;
 
+  console.log('[redirectAfterAuth] Starting redirect logic', { user });
+
   try {
     // If no user provided, try to fetch from API
     if (!user) {
+      console.log('[redirectAfterAuth] No user provided, fetching from API');
       const token = getToken();
+      console.log('[redirectAfterAuth] Token found:', token ? 'YES' : 'NO');
+      
       if (!token) {
+        console.log('[redirectAfterAuth] No token, redirecting to pricing');
         window.location.href = '/pricing?checkout=true';
         return;
       }
 
       // Fetch user info to check membership
+      console.log('[redirectAfterAuth] Fetching user from:', `${config.apiUrl}/auth/me`);
       const response = await fetch(`${config.apiUrl}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
 
+      console.log('[redirectAfterAuth] API response status:', response.status);
+
       if (!response.ok) {
+        console.error('[redirectAfterAuth] API call failed, redirecting to pricing');
         window.location.href = '/pricing?checkout=true';
         return;
       }
 
       user = await response.json();
+      console.log('[redirectAfterAuth] User fetched:', user);
     }
 
     // Check if user has active membership
@@ -95,15 +106,24 @@ export async function redirectAfterAuth(user?: User) {
       (user.subscription && user.subscription.status === 'active')
     );
 
+    console.log('[redirectAfterAuth] Membership check:', {
+      user,
+      plan: user?.plan,
+      subscription: user?.subscription,
+      hasActiveMembership
+    });
+
     if (hasActiveMembership) {
       // User has membership, redirect to dashboard
+      console.log('[redirectAfterAuth] Has membership, redirecting to dashboard:', `${config.dashboardUrl}/dashboard`);
       window.location.href = `${config.dashboardUrl}/dashboard`;
     } else {
       // User doesn't have membership, redirect to pricing
+      console.log('[redirectAfterAuth] No membership, redirecting to pricing');
       window.location.href = '/pricing?checkout=true';
     }
   } catch (error) {
-    console.error('Error during redirect:', error);
+    console.error('[redirectAfterAuth] Error during redirect:', error);
     // Fallback to pricing page on error
     window.location.href = '/pricing';
   }
