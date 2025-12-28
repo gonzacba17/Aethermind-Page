@@ -25,8 +25,8 @@ function CallbackContent() {
     }
 
     if (token) {
-      // Save token and redirect based on membership
-      saveToken(token);
+      // Save token with rememberMe=true for OAuth logins (persistent storage)
+      saveToken(token, true);
       redirectAfterAuth();
     } else {
       // No token, go back to login

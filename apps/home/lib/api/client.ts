@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '@/lib/config';
+import { getToken } from '@/lib/auth-utils';
 
 export interface ApiError {
   message: string;
@@ -6,16 +7,11 @@ export interface ApiError {
 }
 
 export class ApiClient {
-  private getToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('token');
-  }
-
   async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = this.getToken();
+    const token = getToken();
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

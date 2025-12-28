@@ -1,18 +1,22 @@
 'use client'
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
 import { authAPI } from '@/lib/api/auth'
 import { redirectAfterAuth, saveToken } from '@/lib/auth-utils'
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
+import { useAuth } from '@/hooks/useAuth'
+import { config } from '@/lib/config'
 
 function LoginForm() {
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
 
   const {
     register,
@@ -21,6 +25,13 @@ function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      window.location.href = config.dashboardUrl;
+    }
+  }, [isLoading, isAuthenticated]);
 
   useEffect(() => {
     // Success message if coming from signup
@@ -54,10 +65,8 @@ function LoginForm() {
     setError('')
 
     try {
-      const response = await authAPI.login(data)
-      
-      // Save token with remember me preference
-      saveToken(response.token, rememberMe)
+      // authAPI.login now handles token storage with rememberMe preference
+      const response = await authAPI.login(data, rememberMe)
       
       await redirectAfterAuth(response.user)
     } catch (err: unknown) {
@@ -72,6 +81,23 @@ function LoginForm() {
   const handleGitHubLogin = () => {
     authAPI.loginWithGitHub();
   };
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
+          <p className="text-white">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-4">

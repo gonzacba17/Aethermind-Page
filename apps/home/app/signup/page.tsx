@@ -1,14 +1,17 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
 import { authAPI } from '@/lib/api/auth'
 import { redirectAfterAuth } from '@/lib/auth-utils'
 import { signupSchema, type SignupFormData } from '@/lib/validations/auth'
+import { useAuth } from '@/hooks/useAuth'
+import { config } from '@/lib/config'
 
 export default function SignupPage() {
   const [error, setError] = useState('')
+  const { isAuthenticated, isLoading } = useAuth()
 
   const {
     register,
@@ -43,6 +46,30 @@ export default function SignupPage() {
   const handleGitHubSignup = () => {
     authAPI.loginWithGitHub();
   };
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      window.location.href = config.dashboardUrl;
+    }
+  }, [isLoading, isAuthenticated]);
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
+          <p className="text-white">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if authenticated (will redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black px-4">

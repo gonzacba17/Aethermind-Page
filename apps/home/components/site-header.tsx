@@ -3,6 +3,9 @@
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { useAuth } from "@/hooks/useAuth"
+import { authAPI } from "@/lib/api/auth"
+import { config } from "@/lib/config"
 
 const navigationLinks = [
   { label: "Pricing", href: "/#pricing" },
@@ -24,6 +27,12 @@ const ctaButton = {
 export function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { isAuthenticated, user, isLoading } = useAuth()
+
+  const handleLogout = () => {
+    authAPI.logout()
+    window.location.href = '/'
+  }
 
   // Detectar scroll para cambiar el estilo del header
   useEffect(() => {
@@ -90,12 +99,35 @@ export function SiteHeader() {
                 </Link>
               ))}
 
-              <Link
-                href="/login"
-                className="px-6 py-2 bg-white text-black rounded-full text-sm font-semibold hover:scale-105 transition-transform"
-              >
-                Sign In
-              </Link>
+              {/* Auth Section - Desktop */}
+              {!isLoading && (
+                isAuthenticated && user ? (
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-neutral-400">
+                      {user.name}
+                    </span>
+                    <button
+                      onClick={handleLogout}
+                      className="px-6 py-2 bg-white/10 text-white rounded-full text-sm font-semibold hover:bg-white/20 transition-all"
+                    >
+                      Logout
+                    </button>
+                    <Link
+                      href={`${config.dashboardUrl}/dashboard`}
+                      className="px-6 py-2 bg-white text-black rounded-full text-sm font-semibold hover:scale-105 transition-transform"
+                    >
+                      Dashboard
+                    </Link>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="px-6 py-2 bg-white text-black rounded-full text-sm font-semibold hover:scale-105 transition-transform"
+                  >
+                    Sign In
+                  </Link>
+                )
+              )}
             </div>
 
             {/* ============================================
@@ -192,19 +224,60 @@ export function SiteHeader() {
                         </Link>
                       </motion.li>
                     ))}
-                    <motion.li
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: navigationLinks.length * 0.05 }}
-                    >
-                      <Link
-                        href="/login"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="block border-b border-white/5 py-4 text-lg tracking-wide text-neutral-300 transition-colors hover:text-white focus:text-white focus:outline-none"
-                      >
-                        Sign In
-                      </Link>
-                    </motion.li>
+                    
+                    {/* Auth Section - Mobile */}
+                    {!isLoading && (
+                      isAuthenticated && user ? (
+                        <>
+                          <motion.li
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: navigationLinks.length * 0.05 }}
+                          >
+                            <Link
+                              href={`${config.dashboardUrl}/dashboard`}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="block border-b border-white/5 py-4 text-lg tracking-wide text-neutral-300 transition-colors hover:text-white focus:text-white focus:outline-none"
+                            >
+                              Dashboard
+                            </Link>
+                          </motion.li>
+                          <motion.li
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: (navigationLinks.length + 1) * 0.05 }}
+                          >
+                            <div className="border-b border-white/5 py-4">
+                              <div className="text-sm text-neutral-500 mb-2">Logged in as</div>
+                              <div className="text-white mb-3">{user.name}</div>
+                              <button
+                                onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  handleLogout();
+                                }}
+                                className="w-full px-6 py-2 bg-white/10 text-white rounded-full text-sm font-semibold hover:bg-white/20 transition-all"
+                              >
+                                Logout
+                              </button>
+                            </div>
+                          </motion.li>
+                        </>
+                      ) : (
+                        <motion.li
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: navigationLinks.length * 0.05 }}
+                        >
+                          <Link
+                            href="/login"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block border-b border-white/5 py-4 text-lg tracking-wide text-neutral-300 transition-colors hover:text-white focus:text-white focus:outline-none"
+                          >
+                            Sign In
+                          </Link>
+                        </motion.li>
+                      )
+                    )}
                   </ul>
                 </nav>
               </div>

@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import { API_BASE_URL } from '@/lib/config';
+import { saveToken, removeToken } from '@/lib/auth-utils';
 
 export interface User {
   id: string;
@@ -35,7 +36,7 @@ export const authAPI = {
   async signup(data: SignupData): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/signup', data);
     if (response.token) {
-      localStorage.setItem('token', response.token);
+      saveToken(response.token, true); // Remember user by default on signup
       localStorage.setItem('user', JSON.stringify(response.user));
     }
     return response;
@@ -44,10 +45,10 @@ export const authAPI = {
   /**
    * Login existing user
    */
-  async login(data: LoginData): Promise<AuthResponse> {
+  async login(data: LoginData, rememberMe = false): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/login', data);
     if (response.token) {
-      localStorage.setItem('token', response.token);
+      saveToken(response.token, rememberMe);
       localStorage.setItem('user', JSON.stringify(response.user));
     }
     return response;
@@ -65,7 +66,7 @@ export const authAPI = {
    */
   logout() {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
+      removeToken();
       localStorage.removeItem('user');
     }
   },
