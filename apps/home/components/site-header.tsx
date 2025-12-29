@@ -113,7 +113,7 @@ export function SiteHeader() {
                       Logout
                     </button>
                     <Link
-                      href={`${config.dashboardUrl}/dashboard`}
+                      href={config.dashboardUrl}
                       className="px-6 py-2 bg-white text-black rounded-full text-sm font-semibold hover:scale-105 transition-transform"
                     >
                       Dashboard
@@ -235,7 +235,7 @@ export function SiteHeader() {
                             transition={{ delay: navigationLinks.length * 0.05 }}
                           >
                             <Link
-                              href={`${config.dashboardUrl}/dashboard`}
+                              href={config.dashboardUrl}
                               onClick={() => setIsMobileMenuOpen(false)}
                               className="block border-b border-white/5 py-4 text-lg tracking-wide text-neutral-300 transition-colors hover:text-white focus:text-white focus:outline-none"
                             >
