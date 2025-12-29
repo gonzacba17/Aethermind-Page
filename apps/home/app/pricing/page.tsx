@@ -109,6 +109,13 @@ function PricingContent() {
       return;
     }
 
+    // Validate priceId is not empty
+    if (!priceId || priceId.trim() === '') {
+      setError('Payment configuration is not set up yet. Please contact support.');
+      console.error('Stripe priceId is empty or not configured');
+      return;
+    }
+
     setLoading(planName);
     setError('');
 
@@ -116,8 +123,9 @@ function PricingContent() {
       const token = getToken();
       
       if (!token) {
-        // Not logged in, redirect to signup
-        window.location.href = '/signup';
+        // Not logged in, redirect to signup with return URL
+        const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `/signup?returnTo=${returnUrl}`;
         return;
       }
 
@@ -158,21 +166,10 @@ function PricingContent() {
       {/* Header */}
       <div className="relative z-10 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center">
             <Link href="/" className="text-2xl font-bold">
               AETHERMIND
             </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="text-zinc-400 hover:text-white transition">
-                Sign in
-              </Link>
-              <Link
-                href={config.dashboardUrl}
-                className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-zinc-200 transition"
-              >
-                Get started
-              </Link>
-            </div>
           </div>
         </div>
       </div>
@@ -187,12 +184,6 @@ function PricingContent() {
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
             Scale your AI operations with flexible pricing that grows with your business
           </p>
-          {isCheckout && (
-            <div className="mt-6 max-w-2xl mx-auto bg-blue-500/10 border border-blue-500/50 text-blue-400 px-6 py-4 rounded-lg">
-              <p className="font-medium">Welcome to Aethermind! 🎉</p>
-              <p className="text-sm mt-1">Choose a plan to unlock the full power of AI agent management</p>
-            </div>
-          )}
           {error && (
             <div className="mt-6 max-w-2xl mx-auto bg-red-500/10 border border-red-500/50 text-red-400 px-6 py-4 rounded-lg">
               {error}
