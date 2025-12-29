@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { getToken } from '@/lib/auth-utils';
 import { config } from '@/lib/config';
 import { Check, Sparkles, Zap, Crown } from 'lucide-react';
+import { NeuralBackground } from '@/components/neural-background';
 
 // Helper function to validate and get Stripe priceId
 function getStripePriceId(): string {
@@ -64,7 +65,7 @@ const plans = [
   {
     name: 'Enterprise',
     price: 'Custom',
-    priceId: null,
+    priceId: getStripePriceId(),
     description: 'For organizations with advanced needs',
     features: [
       'Everything in Pro',
@@ -101,12 +102,9 @@ function PricingContent() {
 
   const handleSelectPlan = async (planName: string, priceId: string | null) => {
     if (!priceId) {
-      if (planName === 'Enterprise') {
-        // Redirect to contact page for enterprise
-        window.location.href = '/contact?plan=enterprise';
-      } else if (planName === 'Free') {
+      if (planName === 'Free') {
         // Free plan, just go to dashboard
-        window.location.href = `${config.dashboardUrl}/dashboard`;
+        window.location.href = config.dashboardUrl;
       }
       return;
     }
@@ -155,9 +153,10 @@ function PricingContent() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="relative min-h-screen bg-black text-white">
+      <NeuralBackground />
       {/* Header */}
-      <div className="border-b border-zinc-800">
+      <div className="relative z-10 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <Link href="/" className="text-2xl font-bold">
@@ -168,7 +167,7 @@ function PricingContent() {
                 Sign in
               </Link>
               <Link
-                href="/signup"
+                href={config.dashboardUrl}
                 className="bg-white text-black px-4 py-2 rounded-lg font-medium hover:bg-zinc-200 transition"
               >
                 Get started
@@ -179,7 +178,7 @@ function PricingContent() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Title Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4">
@@ -253,8 +252,6 @@ function PricingContent() {
                     </span>
                   ) : plan.name === 'Free' ? (
                     'Start Free'
-                  ) : plan.name === 'Enterprise' ? (
-                    'Contact Sales'
                   ) : (
                     'Subscribe'
                   )}
