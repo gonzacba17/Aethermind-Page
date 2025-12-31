@@ -67,6 +67,36 @@ export async function redirectAfterAuth(user?: User) {
 
   console.log('[redirectAfterAuth] Starting redirect logic', { user });
 
+  // Check if user just completed onboarding payment selection
+  const onboardingPaymentRaw = localStorage.getItem('onboarding_payment');
+  if (onboardingPaymentRaw) {
+    try {
+      const onboardingData = JSON.parse(onboardingPaymentRaw);
+      const fiveMinutesInMs = 5 * 60 * 1000; // 5 minutes
+      const isRecent = (Date.now() - onboardingData.timestamp) < fiveMinutesInMs;
+      
+      if (onboardingData.completed && isRecent) {
+        console.log('[redirectAfterAuth] Recent onboarding payment detected, bypassing membership check');
+        console.log('[redirectAfterAuth] Selected plan:', onboardingData.selectedPlan);
+        
+        // Clear the flag to prevent permanent bypass
+        localStorage.removeItem('onboarding_payment');
+        
+        // Redirect directly to dashboard
+        console.log('[redirectAfterAuth] Redirecting to dashboard after onboarding');
+        window.location.href = `${config.dashboardUrl}/dashboard`;
+        return;
+      } else if (!isRecent) {
+        // Clean up expired flag
+        console.log('[redirectAfterAuth] Onboarding payment flag expired, removing');
+        localStorage.removeItem('onboarding_payment');
+      }
+    } catch (error) {
+      console.error('[redirectAfterAuth] Error parsing onboarding payment data:', error);
+      localStorage.removeItem('onboarding_payment');
+    }
+  }
+
   try {
     // If no user provided, try to fetch from API
     if (!user) {

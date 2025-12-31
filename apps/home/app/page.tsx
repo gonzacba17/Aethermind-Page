@@ -16,12 +16,13 @@ function OAuthHandler() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    // WORKAROUND: Backend redirige a /?token=XXX en lugar de /auth/callback?token=XXX
+    // WORKAROUND: Backend redirects to /?token=XXX instead of /auth/callback?token=XXX
     const token = searchParams.get('token')
     
     if (token) {
       console.log('[Home Page] OAuth token received, processing...')
       saveToken(token, true)
+      // redirectAfterAuth will check for onboarding payment flag and handle accordingly
       redirectAfterAuth()
     }
   }, [searchParams])
