@@ -68,7 +68,14 @@ function LoginForm() {
       // authAPI.login now handles token storage with rememberMe preference
       const response = await authAPI.login(data, rememberMe)
       
-      await redirectAfterAuth(response.user)
+      // Check for returnTo parameter
+      const returnTo = searchParams.get('returnTo');
+      if (returnTo && returnTo.startsWith('/')) {
+        console.log('[Login] Redirecting to returnTo:', returnTo);
+        window.location.href = returnTo;
+      } else {
+        await redirectAfterAuth(response.user)
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     }

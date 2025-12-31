@@ -18,6 +18,20 @@ export function saveToken(token: string, rememberMe = false) {
     sessionStorage.setItem('token', token);
     localStorage.removeItem('rememberMe');
   }
+
+  // CRITICAL: Save token in cookie for middleware access
+  // Cookie is HttpOnly-like (can't be set as httpOnly from client, but SameSite=Strict provides CSRF protection)
+  const maxAge = rememberMe ? 30 * 24 * 60 * 60 : undefined; // 30 days for rememberMe, session otherwise
+  const cookieString = [
+    `token=${token}`,
+    'path=/',
+    'SameSite=Strict',
+    window.location.protocol === 'https:' ? 'Secure' : '',
+    maxAge ? `max-age=${maxAge}` : '',
+  ].filter(Boolean).join('; ');
+  
+  document.cookie = cookieString;
+  console.log('[saveToken] Token saved to cookie:', { rememberMe, maxAge });
 }
 
 /**
@@ -47,6 +61,10 @@ export function removeToken() {
   localStorage.removeItem('token');
   localStorage.removeItem('rememberMe');
   sessionStorage.removeItem('token');
+  
+  // CRITICAL: Clear cookie as well
+  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
+  console.log('[removeToken] Token removed from all storage including cookies');
 }
 
 /**
@@ -55,6 +73,36 @@ export function removeToken() {
 export function isRememberMeEnabled(): boolean {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem('rememberMe') === 'true';
+}
+
+/**
+ * Get subscription status with smart logic for trials and expiration
+ * @param user User object from backend
+ * @returns Subscription status
+ */
+export function getSubscriptionStatus(user?: User): 'active' | 'trialing' | 'past_due' | 'canceled' | 'none' {
+  if (!user || !user.subscription) return 'none';
+  
+  const status = user.subscription.status;
+  
+  // Handle trialing status with expiration check
+  if (status === 'trialing') {
+    if (user.subscription.trial_end) {
+      const trialEnd = new Date(user.subscription.trial_end);
+      const now = new Date();
+      if (now > trialEnd) {
+        return 'past_due'; // Trial expired
+      }
+    }
+    return 'trialing';
+  }
+  
+  // Handle other statuses
+  if (status === 'active') return 'active';
+  if (status === 'past_due') return 'past_due';
+  if (status === 'canceled') return 'canceled';
+  
+  return 'none';
 }
 
 /**
@@ -130,27 +178,40 @@ export async function redirectAfterAuth(user?: User) {
       console.log('[redirectAfterAuth] User fetched:', user);
     }
 
-    // Check if user has active membership
-    const hasActiveMembership = user && (
-      (user.plan && user.plan !== 'free') ||
-      (user.subscription && user.subscription.status === 'active')
-    );
-
-    console.log('[redirectAfterAuth] Membership check:', {
+    // Get subscription status after fetching user
+    const subscriptionStatus = getSubscriptionStatus(user);
+    
+    console.log('[redirectAfterAuth] Subscription check:', {
       user,
       plan: user?.plan,
       subscription: user?.subscription,
-      hasActiveMembership
+      subscriptionStatus
     });
 
-    if (hasActiveMembership) {
-      // User has membership, redirect to dashboard
-      console.log('[redirectAfterAuth] Has membership, redirecting to dashboard:', `${config.dashboardUrl}/dashboard`);
+    // Route based on subscription status
+    if (subscriptionStatus === 'past_due') {
+      // Subscription expired or trial ended
+      console.log('[redirectAfterAuth] Subscription past due, redirecting to renew');
+      window.location.href = '/renew?reason=expired';
+    } else if (subscriptionStatus === 'canceled') {
+      // Subscription was canceled
+      console.log('[redirectAfterAuth] Subscription canceled, redirecting to pricing');
+      window.location.href = '/pricing?reason=canceled';
+    } else if (subscriptionStatus === 'active' || subscriptionStatus === 'trialing') {
+      // Has active subscription or in trial, redirect to dashboard
+      console.log('[redirectAfterAuth] Has active/trial subscription, redirecting to dashboard:', `${config.dashboardUrl}/dashboard`);
       window.location.href = `${config.dashboardUrl}/dashboard`;
     } else {
-      // User doesn't have membership, redirect to pricing
-      console.log('[redirectAfterAuth] No membership, redirecting to pricing');
-      window.location.href = '/pricing?checkout=true';
+      // No subscription, check if has paid plan
+      const hasPaidPlan = user?.plan && user.plan !== 'free';
+      if (hasPaidPlan) {
+        console.log('[redirectAfterAuth] Has paid plan, redirecting to dashboard');
+        window.location.href = `${config.dashboardUrl}/dashboard`;
+      } else {
+        // User doesn't have membership, redirect to pricing
+        console.log('[redirectAfterAuth] No membership, redirecting to pricing');
+        window.location.href = '/pricing?checkout=true';
+      }
     }
   } catch (error) {
     console.error('[redirectAfterAuth] Error during redirect:', error);

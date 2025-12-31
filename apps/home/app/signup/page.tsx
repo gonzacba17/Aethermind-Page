@@ -1,6 +1,7 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import {useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
 import { authAPI } from '@/lib/api/auth'
@@ -9,8 +10,9 @@ import { signupSchema, type SignupFormData } from '@/lib/validations/auth'
 import { useAuth } from '@/hooks/useAuth'
 import { config } from '@/lib/config'
 
-export default function SignupPage() {
+function SignupForm() {
   const [error, setError] = useState('')
+  const searchParams = useSearchParams()
   const { isAuthenticated, isLoading } = useAuth()
 
   const {
@@ -31,8 +33,15 @@ export default function SignupPage() {
         password: data.password,
       })
 
-      // Smart redirect based on membership
-      await redirectAfterAuth(user)
+      // Check for returnTo parameter (user came from a protected route)
+      const returnTo = searchParams.get('returnTo');
+      if (returnTo && returnTo.startsWith('/')) {
+        console.log('[Signup] Redirecting to returnTo:', returnTo);
+        window.location.href = returnTo;
+      } else {
+        // Smart redirect based on membership
+        await redirectAfterAuth(user)
+      }
 
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -203,4 +212,16 @@ export default function SignupPage() {
       </div>
     </div>
   )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
+  );
 }

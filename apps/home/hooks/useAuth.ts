@@ -55,6 +55,26 @@ export function useAuth(): AuthState {
     }
 
     checkAuth();
+
+    // CRITICAL: Listen for storage changes from other tabs
+    function handleStorageChange(e: StorageEvent) {
+      if (e.key === 'token') {
+        if (!e.newValue) {
+          // Token removed in another tab, logout here too
+          console.log('[useAuth] Token removed in another tab, logging out');
+          setState({ isAuthenticated: false, isLoading: false, user: null });
+          // Redirect to login with message
+          window.location.href = '/login?reason=session_ended';
+        } else if (e.newValue !== e.oldValue) {
+          // Token changed in another tab, re-verify
+          console.log('[useAuth] Token changed in another tab, re-verifying');
+          checkAuth();
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   return state;

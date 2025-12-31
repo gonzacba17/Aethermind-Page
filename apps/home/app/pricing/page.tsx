@@ -103,8 +103,46 @@ function PricingContent() {
   const handleSelectPlan = async (planName: string, priceId: string | null) => {
     if (!priceId) {
       if (planName === 'Free') {
-        // Free plan, just go to dashboard
-        window.location.href = config.dashboardUrl;
+        // Free plan - need to update backend FIRST
+        const token = getToken();
+        
+        if (!token) {
+          // Not logged in, redirect to signup
+          window.location.href = '/signup?returnTo=/pricing';
+          return;
+        }
+
+        setLoading(planName);
+        setError('');
+
+        try {
+          // Update plan in backend
+          const response = await fetch(`${config.apiUrl}/auth/update-plan`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ plan: 'free' })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update plan');
+          }
+
+          // Show success message
+          setError(''); // Clear any errors
+          
+          // Redirect after brief delay
+          setTimeout(() => {
+            window.location.href = config.dashboardUrl;
+          }, 1000);
+        } catch (err) {
+          console.error('[Free Plan] Error:', err);
+          setError('Error al activar plan Free. Intenta nuevamente.');
+        } finally {
+          setLoading(null);
+        }
       }
       return;
     }
@@ -160,6 +198,35 @@ function PricingContent() {
     }
   };
 
+  // Get banner message based on URL parameters
+  const reason = searchParams.get('reason');
+  const getBannerMessage = () => {
+    if (reason === 'canceled') {
+      return {
+        show: true,
+        message: 'Tu suscripción fue cancelada. Selecciona un plan para reactivarla y continuar usando Aethermind Pro.',
+        color: 'blue'
+      };
+    }
+    if (reason === 'expired') {
+      return {
+        show: true,
+        message: 'Tu suscripción ha expirado. Renueva ahora para recuperar acceso a todas las funcionalidades de Aethermind Pro.',
+        color: 'yellow'
+      };
+    }
+    if (isCheckout) {
+      return {
+        show: true,
+        message: 'Selecciona un plan para acceder al dashboard y comenzar a usar Aethermind.',
+        color: 'blue'
+      };
+    }
+    return { show: false, message: '', color: 'blue' };
+  };
+
+  const banner = getBannerMessage();
+
   return (
     <div className="relative min-h-screen bg-black text-white">
       <NeuralBackground />
@@ -184,6 +251,19 @@ function PricingContent() {
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
             Scale your AI operations with flexible pricing that grows with your business
           </p>
+          
+          {/* Informative Banner */}
+          {banner.show && (
+            <div className={`mt-6 max-w-2xl mx-auto ${
+              banner.color === 'yellow' ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-400' : 'bg-blue-500/10 border-blue-500/50 text-blue-400'
+            } border px-6 py-4 rounded-lg flex items-start gap-3`}>
+              <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm">{banner.message}</p>
+            </div>
+          )}
+          
           {error && (
             <div className="mt-6 max-w-2xl mx-auto bg-red-500/10 border border-red-500/50 text-red-400 px-6 py-4 rounded-lg">
               {error}

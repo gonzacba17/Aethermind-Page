@@ -8,8 +8,9 @@ export interface User {
   email: string;
   plan?: 'free' | 'pro' | 'enterprise';
   subscription?: {
-    status: 'active' | 'inactive' | 'canceled';
+    status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'inactive';
     plan: string;
+    trial_end?: string | Date; // ISO date string or Date object
   };
 }
 
