@@ -103,7 +103,7 @@ function PricingContent() {
   const handleSelectPlan = async (planName: string, priceId: string | null) => {
     if (!priceId) {
       if (planName === 'Free') {
-        // Free plan - need to update backend FIRST
+        // Free plan - update backend and redirect
         const token = getToken();
         
         if (!token) {
@@ -116,6 +116,8 @@ function PricingContent() {
         setError('');
 
         try {
+          console.log('[Free Plan] Updating plan in backend...', { apiUrl: config.apiUrl });
+          
           // Update plan in backend
           const response = await fetch(`${config.apiUrl}/auth/update-plan`, {
             method: 'POST',
@@ -126,20 +128,33 @@ function PricingContent() {
             body: JSON.stringify({ plan: 'free' })
           });
 
+          console.log('[Free Plan] Response status:', response.status);
+
           if (!response.ok) {
-            throw new Error('Failed to update plan');
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            console.error('[Free Plan] Backend error:', errorData);
+            
+            // Specific error messages based on status code
+            if (response.status === 401) {
+              throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
+            } else if (response.status === 400) {
+              throw new Error(errorData.message || 'Solicitud inválida. Contacta soporte.');
+            } else {
+              throw new Error(errorData.message || 'Error al activar plan. Intenta nuevamente.');
+            }
           }
 
-          // Show success message
-          setError(''); // Clear any errors
+          const data = await response.json();
+          console.log('[Free Plan] Plan updated successfully:', data);
           
           // Redirect after brief delay
           setTimeout(() => {
             window.location.href = config.dashboardUrl;
-          }, 1000);
+          }, 500);
         } catch (err) {
           console.error('[Free Plan] Error:', err);
-          setError('Error al activar plan Free. Intenta nuevamente.');
+          const errorMessage = err instanceof Error ? err.message : 'Error al activar plan Free. Intenta nuevamente.';
+          setError(errorMessage);
         } finally {
           setLoading(null);
         }

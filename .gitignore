@@ -41,3 +41,15 @@ next-env.d.ts
 *.old
 *.tmp
 *~
+
+# Claude AI files
+.claude/
+
+# Scripts de desarrollo
+*.ps1
+*.bat
+
+# Debugging
+DEBUG_*.md
+*-errors.txt
+check-auth-token.html
