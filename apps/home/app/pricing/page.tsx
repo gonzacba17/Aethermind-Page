@@ -1,12 +1,25 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getToken } from '@/lib/auth-utils';
 import { config } from '@/lib/config';
 import { Check, Sparkles, Zap, Crown } from 'lucide-react';
 import { NeuralBackground } from '@/components/neural-background';
+import { 
+  ConfirmationModal, 
+  TempUserWarningModal, 
+  PlanConfirmationModal 
+} from '@/components/ConfirmationModal';
+import { ErrorBanner } from '@/components/ErrorBanner';
+import { 
+  userAPI, 
+  isTemporaryUser, 
+  getErrorMessage,
+  type PlanType,
+  type UserValidationResult 
+} from '@/lib/api/user';
 
 // Helper function to validate and get Stripe priceId
 function getStripePriceId(): string {
@@ -84,9 +97,27 @@ const plans = [
   },
 ];
 
+// Error state interface
+interface ErrorState {
+  message: string;
+  type: 'error' | 'warning' | 'info';
+  retryable: boolean;
+  planName?: string;
+}
+
 function PricingContent() {
   const [loading, setLoading] = useState<string | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<ErrorState | null>(null);
+  const [retryLoading, setRetryLoading] = useState(false);
+  
+  // Modal states
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showTempUserModal, setShowTempUserModal] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<{ name: string; priceId: string | null } | null>(null);
+  
+  // Validation state
+  const [validationResult, setValidationResult] = useState<UserValidationResult | null>(null);
+  
   const searchParams = useSearchParams();
   const isCheckout = searchParams.get('checkout') === 'true';
 
@@ -94,94 +125,180 @@ function PricingContent() {
     if (isCheckout) {
       // User came from authentication, show message
       const timer = setTimeout(() => {
-        setError('');
-      }, 5000);
+        setError(null);
+      }, 10000); // Extended to 10 seconds
       return () => clearTimeout(timer);
     }
   }, [isCheckout]);
 
-  const handleSelectPlan = async (planName: string, priceId: string | null) => {
-    if (!priceId) {
-      if (planName === 'Free') {
-        // Free plan - update backend and redirect
-        const token = getToken();
-        
-        if (!token) {
-          // Not logged in, redirect to signup
-          window.location.href = '/signup?returnTo=/pricing';
+  // Handle retry for Free plan
+  const handleRetry = useCallback(async () => {
+    if (!pendingPlan) return;
+    
+    setRetryLoading(true);
+    setError(null);
+    
+    try {
+      await handleConfirmFreePlan();
+    } finally {
+      setRetryLoading(false);
+    }
+  }, [pendingPlan]);
+
+  // Validate user before showing confirmation
+  const validateAndShowConfirmation = async (planName: string, priceId: string | null) => {
+    console.log('[Pricing] Starting validation for plan:', planName);
+    setLoading(planName);
+    setError(null);
+    
+    const token = getToken();
+    
+    if (!token) {
+      console.log('[Pricing] No token, redirecting to signup');
+      window.location.href = '/signup?returnTo=/pricing';
+      return;
+    }
+    
+    try {
+      // Validate user for plan update
+      const validation = await userAPI.validateForPlanUpdate(planName.toLowerCase() as PlanType);
+      setValidationResult(validation);
+      
+      console.log('[Pricing] Validation result:', validation);
+      
+      if (!validation.valid) {
+        if (validation.reason === 'TEMP_USER') {
+          // Show temp user warning modal
+          setPendingPlan({ name: planName, priceId });
+          setShowTempUserModal(true);
+          setLoading(null);
           return;
         }
-
-        setLoading(planName);
-        setError('');
-
-        try {
-          console.log('[Free Plan] Updating plan in backend...', { apiUrl: config.apiUrl });
-          
-          // Update plan in backend
-          const response = await fetch(`${config.apiUrl}/auth/update-plan`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ plan: 'free' })
+        
+        if (validation.reason === 'ALREADY_HAS_PLAN') {
+          // User already has this plan - show info and offer dashboard redirect
+          setError({
+            message: validation.message || `Ya tienes el plan ${planName} activo.`,
+            type: 'info',
+            retryable: false,
+            planName,
           });
-
-          console.log('[Free Plan] Response status:', response.status);
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-            console.error('[Free Plan] Backend error:', errorData);
-            
-            // Specific error messages based on status code
-            if (response.status === 401) {
-              throw new Error('Sesión expirada. Por favor inicia sesión nuevamente.');
-            } else if (response.status === 400) {
-              throw new Error(errorData.message || 'Solicitud inválida. Contacta soporte.');
-            } else {
-              throw new Error(errorData.message || 'Error al activar plan. Intenta nuevamente.');
-            }
-          }
-
-          const data = await response.json();
-          console.log('[Free Plan] Plan updated successfully:', data);
-          
-          // Redirect after brief delay
-          setTimeout(() => {
-            window.location.href = config.dashboardUrl;
-          }, 500);
-        } catch (err) {
-          console.error('[Free Plan] Error:', err);
-          const errorMessage = err instanceof Error ? err.message : 'Error al activar plan Free. Intenta nuevamente.';
-          setError(errorMessage);
-        } finally {
           setLoading(null);
+          return;
         }
+        
+        if (validation.reason === 'NO_TOKEN' || validation.reason === 'INVALID_TOKEN') {
+          // Auth issue - redirect to login
+          console.log('[Pricing] Auth issue, redirecting to login');
+          window.location.href = '/login?returnTo=/pricing';
+          return;
+        }
+        
+        // Generic validation error
+        setError({
+          message: validation.message || 'Error de validación. Intenta nuevamente.',
+          type: 'error',
+          retryable: true,
+          planName,
+        });
+        setLoading(null);
+        return;
+      }
+      
+      // Validation passed - show confirmation modal
+      setPendingPlan({ name: planName, priceId });
+      setShowConfirmModal(true);
+      
+    } catch (err) {
+      console.error('[Pricing] Validation error:', err);
+      setError({
+        message: getErrorMessage(err),
+        type: 'error',
+        retryable: true,
+        planName,
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  // Handle confirmed Free plan activation
+  const handleConfirmFreePlan = async () => {
+    if (!pendingPlan) return;
+    
+    console.log('[Pricing] Confirming Free plan activation');
+    setLoading(pendingPlan.name);
+    setError(null);
+    
+    try {
+      const result = await userAPI.updatePlan('free');
+      console.log('[Pricing] Plan updated successfully:', result);
+      
+      // Success! Redirect to dashboard
+      setShowConfirmModal(false);
+      setTimeout(() => {
+        window.location.href = config.dashboardUrl;
+      }, 500);
+      
+    } catch (err) {
+      console.error('[Pricing] Update plan error:', err);
+      setShowConfirmModal(false);
+      
+      const errorMessage = err instanceof Error ? err.message : getErrorMessage(err);
+      
+      // Check if it's a temp user error from the backend
+      if (errorMessage.toLowerCase().includes('temp') || errorMessage.toLowerCase().includes('temporal')) {
+        setShowTempUserModal(true);
+      } else {
+        setError({
+          message: errorMessage,
+          type: 'error',
+          retryable: true,
+          planName: pendingPlan.name,
+        });
+      }
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleSelectPlan = async (planName: string, priceId: string | null) => {
+    console.log('[Pricing] Plan selected:', { planName, priceId });
+    
+    if (!priceId) {
+      if (planName === 'Free') {
+        // Free plan - validate first, then show confirmation
+        await validateAndShowConfirmation(planName, priceId);
       }
       return;
     }
 
     // Validate priceId is not empty
     if (!priceId || priceId.trim() === '') {
-      setError('Payment configuration is not set up yet. Please contact support.');
+      setError({
+        message: 'La configuración de pago no está disponible. Contacta a soporte.',
+        type: 'error',
+        retryable: false,
+      });
       console.error('Stripe priceId is empty or not configured');
       return;
     }
 
-    setLoading(planName);
-    setError('');
+    // Paid plan - validate first
+    await validateAndShowConfirmation(planName, priceId);
+  };
 
+  // Handle confirmed paid plan (Stripe checkout)
+  const handleConfirmPaidPlan = async () => {
+    if (!pendingPlan || !pendingPlan.priceId) return;
+    
+    console.log('[Pricing] Confirming paid plan:', pendingPlan.name);
+    setLoading(pendingPlan.name);
+    setError(null);
+    
     try {
       const token = getToken();
       
-      if (!token) {
-        // Not logged in, redirect to signup with return URL
-        const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.href = `/signup?returnTo=${returnUrl}`;
-        return;
-      }
-
       // Call backend to create Stripe Checkout session
       const response = await fetch(`${config.apiUrl}/stripe/create-checkout-session`, {
         method: 'POST',
@@ -190,7 +307,7 @@ function PricingContent() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          priceId,
+          priceId: pendingPlan.priceId,
           successUrl: `${window.location.origin}/pricing/success`,
           cancelUrl: `${window.location.origin}/pricing?checkout=true`,
         }),
@@ -199,17 +316,37 @@ function PricingContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create checkout session');
+        throw new Error(data.message || 'Error al crear sesión de pago');
       }
 
       // Redirect to Stripe Checkout
+      setShowConfirmModal(false);
       window.location.href = data.url;
 
     } catch (err) {
-      console.error('Checkout error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to start checkout. Please try again.');
+      console.error('[Pricing] Checkout error:', err);
+      setShowConfirmModal(false);
+      setError({
+        message: err instanceof Error ? err.message : 'Error al iniciar el pago. Intenta nuevamente.',
+        type: 'error',
+        retryable: true,
+        planName: pendingPlan.name,
+      });
     } finally {
       setLoading(null);
+    }
+  };
+
+  // Handle modal confirmation based on plan type
+  const handleModalConfirm = () => {
+    if (!pendingPlan) return;
+    
+    if (pendingPlan.priceId) {
+      // Paid plan
+      handleConfirmPaidPlan();
+    } else {
+      // Free plan
+      handleConfirmFreePlan();
     }
   };
 
@@ -242,9 +379,32 @@ function PricingContent() {
 
   const banner = getBannerMessage();
 
+  // Handle go to dashboard (for already has plan case)
+  const handleGoToDashboard = () => {
+    window.location.href = config.dashboardUrl;
+  };
+
   return (
     <div className="relative min-h-screen bg-black text-white">
       <NeuralBackground />
+      
+      {/* Modals */}
+      <TempUserWarningModal
+        isOpen={showTempUserModal}
+        onClose={() => setShowTempUserModal(false)}
+      />
+      
+      <PlanConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => {
+          setShowConfirmModal(false);
+          setPendingPlan(null);
+        }}
+        onConfirm={handleModalConfirm}
+        planName={pendingPlan?.name || 'Free'}
+        isLoading={loading !== null}
+      />
+      
       {/* Header */}
       <div className="relative z-10 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -279,9 +439,18 @@ function PricingContent() {
             </div>
           )}
           
+          {/* Error Banner with enhanced UI */}
           {error && (
-            <div className="mt-6 max-w-2xl mx-auto bg-red-500/10 border border-red-500/50 text-red-400 px-6 py-4 rounded-lg">
-              {error}
+            <div className="mt-6 max-w-2xl mx-auto">
+              <ErrorBanner
+                message={error.message}
+                type={error.type}
+                onRetry={error.retryable ? handleRetry : (error.type === 'info' ? handleGoToDashboard : undefined)}
+                retryLoading={retryLoading}
+                showRetry={error.retryable || error.type === 'info'}
+                showSupport={error.type === 'error'}
+                onDismiss={() => setError(null)}
+              />
             </div>
           )}
         </div>
@@ -334,7 +503,7 @@ function PricingContent() {
                   {loading === plan.name ? (
                     <span className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      Processing...
+                      Procesando...
                     </span>
                   ) : plan.name === 'Free' ? (
                     'Start Free'
