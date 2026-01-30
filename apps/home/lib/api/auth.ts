@@ -6,6 +6,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  apiKey?: string; // API key for SDK integration
+  hasCompletedOnboarding?: boolean;
   plan?: 'free' | 'pro' | 'enterprise';
   subscription?: {
     status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'inactive';
@@ -103,5 +105,33 @@ export const authAPI = {
     }
 
     return false;
+  },
+
+  /**
+   * Request password reset email
+   */
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>('/auth/forgot-password', { email });
+  },
+
+  /**
+   * Reset password with token
+   */
+  async resetPassword(token: string, password: string): Promise<{ message: string }> {
+    return apiClient.post<{ message: string }>('/auth/reset-password', { token, password });
+  },
+
+  /**
+   * Verify email with token
+   */
+  async verifyEmail(token: string): Promise<{ message: string; user?: User }> {
+    return apiClient.post<{ message: string; user?: User }>('/auth/verify-email', { token });
+  },
+
+  /**
+   * Update onboarding progress
+   */
+  async updateOnboarding(step: string, completed = false): Promise<{ success: boolean }> {
+    return apiClient.patch<{ success: boolean }>('/auth/onboarding', { step, completed });
   },
 };

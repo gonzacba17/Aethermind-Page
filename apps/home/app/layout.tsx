@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { AuthProvider } from "@/providers/AuthProvider"
 import "./globals.css"
 
 const geistSans = Geist({ subsets: ["latin"] })
@@ -45,7 +46,9 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`} suppressHydrationWarning>
         <ErrorBoundary>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ErrorBoundary>
         <Analytics />
       </body>
