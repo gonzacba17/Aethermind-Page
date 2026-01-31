@@ -1,6 +1,3 @@
 {
-  "installCommand": "npm install --prefix apps/home",
-  "buildCommand": "npm run build --prefix apps/home",
-  "outputDirectory": "apps/home/.next",
   "framework": "nextjs"
 }
