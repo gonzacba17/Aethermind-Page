@@ -211,8 +211,17 @@ function PricingContent() {
       
     } catch (err) {
       console.error('[Pricing] Validation error:', err);
+
+      // Si es un error de autenticación, limpiar sesión y redirigir a login
+      const errorMessage = getErrorMessage(err);
+      if (errorMessage.includes('sesión') || errorMessage.includes('expirado') || errorMessage.includes('session')) {
+        console.log('[Pricing] Auth error detected, redirecting to login');
+        window.location.href = '/login?returnTo=/pricing&error=session_expired';
+        return;
+      }
+
       setError({
-        message: getErrorMessage(err),
+        message: errorMessage,
         type: 'error',
         retryable: true,
         planName,

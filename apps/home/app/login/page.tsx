@@ -48,13 +48,17 @@ function LoginForm() {
       return;
     }
 
-    // Handle OAuth errors
+    // Handle OAuth errors and session errors
     const oauthError = searchParams.get('error');
     if (oauthError) {
       if (oauthError === 'google_auth_failed') {
         setError('Google authentication failed. Please try again.');
       } else if (oauthError === 'github_auth_failed') {
         setError('GitHub authentication failed. Please try again.');
+      } else if (oauthError === 'session_expired') {
+        setError('Tu sesión expiró. Por favor inicia sesión nuevamente.');
+      } else if (oauthError === 'invalid_token') {
+        setError('Error de autenticación. Por favor intenta iniciar sesión nuevamente.');
       } else {
         setError('Authentication failed. Please try again.');
       }

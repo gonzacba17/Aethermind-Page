@@ -15,34 +15,49 @@ function CallbackContent() {
     if (hasProcessed.current) return;
     hasProcessed.current = true;
 
-    const token = searchParams.get('token');
-    const error = searchParams.get('error');
+    const processCallback = async () => {
+      const token = searchParams.get('token');
+      const error = searchParams.get('error');
 
-    console.log('[OAuth Callback] Processing callback', { 
-      token: token ? 'RECEIVED' : 'MISSING', 
-      error,
-      url: window.location.href 
-    });
+      console.log('[OAuth Callback] Processing callback', {
+        token: token ? 'RECEIVED' : 'MISSING',
+        error,
+        url: window.location.href
+      });
 
-    if (error) {
-      // OAuth failed, redirect to login with error
-      console.error('[OAuth Callback] OAuth error:', error);
-      router.push(`/login?error=${error}`);
-      return;
-    }
+      if (error) {
+        // OAuth failed, redirect to login with error
+        console.error('[OAuth Callback] OAuth error:', error);
+        router.push(`/login?error=${error}`);
+        return;
+      }
 
-    if (token) {
-      // Save token with rememberMe=true for OAuth logins (persistent storage)
-      console.log('[OAuth Callback] Saving token to localStorage');
-      saveToken(token, true);
-      
-      console.log('[OAuth Callback] Calling redirectAfterAuth');
-      redirectAfterAuth();
-    } else {
-      // No token, go back to login
-      console.error('[OAuth Callback] No token received, redirecting to login');
-      router.push('/login');
-    }
+      if (token) {
+        // Verificar que el token tenga un formato válido (JWT tiene 3 partes separadas por .)
+        const tokenParts = token.split('.');
+        if (tokenParts.length !== 3) {
+          console.error('[OAuth Callback] Invalid token format, expected JWT');
+          router.push('/login?error=invalid_token');
+          return;
+        }
+
+        // Save token with rememberMe=true for OAuth logins (persistent storage)
+        console.log('[OAuth Callback] Saving token to localStorage');
+        saveToken(token, true);
+
+        // Pequeño delay para asegurar que el token se guardó antes de redirigir
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        console.log('[OAuth Callback] Calling redirectAfterAuth');
+        redirectAfterAuth();
+      } else {
+        // No token, go back to login
+        console.error('[OAuth Callback] No token received, redirecting to login');
+        router.push('/login');
+      }
+    };
+
+    processCallback();
   }, [searchParams, router]);
 
   return (

@@ -107,13 +107,17 @@ export function getSubscriptionStatus(user?: User): 'active' | 'trialing' | 'pas
 
 /**
  * Redirect user after successful authentication
- * Smart redirect based on membership status
+ * Smart redirect based on membership status and onboarding completion
  * @param user Optional user object to check membership
  */
 export async function redirectAfterAuth(user?: User) {
   if (typeof window === 'undefined') return;
 
   console.log('[redirectAfterAuth] Starting redirect logic', { user });
+
+  // Check if user has completed technical onboarding
+  const hasCompletedTechnicalOnboarding = localStorage.getItem('onboarding_technical_complete') === 'true';
+  const hasSeenMarketingOnboarding = localStorage.getItem('onboarding_marketing_seen') === 'true';
 
   // Check if user just completed onboarding payment selection
   const onboardingPaymentRaw = localStorage.getItem('onboarding_payment');
@@ -122,17 +126,24 @@ export async function redirectAfterAuth(user?: User) {
       const onboardingData = JSON.parse(onboardingPaymentRaw);
       const fiveMinutesInMs = 5 * 60 * 1000; // 5 minutes
       const isRecent = (Date.now() - onboardingData.timestamp) < fiveMinutesInMs;
-      
+
       if (onboardingData.completed && isRecent) {
-        console.log('[redirectAfterAuth] Recent onboarding payment detected, bypassing membership check');
+        console.log('[redirectAfterAuth] Recent onboarding payment detected');
         console.log('[redirectAfterAuth] Selected plan:', onboardingData.selectedPlan);
-        
+
+        // Check if technical onboarding is complete
+        if (!hasCompletedTechnicalOnboarding) {
+          console.log('[redirectAfterAuth] Redirecting to technical setup');
+          window.location.href = '/onboarding/setup';
+          return;
+        }
+
         // Clear the flag to prevent permanent bypass
         localStorage.removeItem('onboarding_payment');
-        
-        // Redirect directly to dashboard
-        console.log('[redirectAfterAuth] Redirecting to dashboard after onboarding');
-        window.location.href = `${config.dashboardUrl}/dashboard`;
+
+        // Redirect to complete page for secure dashboard redirect
+        console.log('[redirectAfterAuth] Redirecting to complete page');
+        window.location.href = '/onboarding/complete';
         return;
       } else if (!isRecent) {
         // Clean up expired flag
@@ -143,6 +154,13 @@ export async function redirectAfterAuth(user?: User) {
       console.error('[redirectAfterAuth] Error parsing onboarding payment data:', error);
       localStorage.removeItem('onboarding_payment');
     }
+  }
+
+  // If user hasn't seen marketing onboarding, redirect to welcome
+  if (!hasSeenMarketingOnboarding && !user?.hasCompletedOnboarding) {
+    console.log('[redirectAfterAuth] User has not seen marketing onboarding, redirecting to welcome');
+    window.location.href = '/onboarding/welcome';
+    return;
   }
 
   try {
@@ -169,7 +187,18 @@ export async function redirectAfterAuth(user?: User) {
       console.log('[redirectAfterAuth] API response status:', response.status);
 
       if (!response.ok) {
-        console.error('[redirectAfterAuth] API call failed, redirecting to pricing');
+        console.error('[redirectAfterAuth] API call failed, status:', response.status);
+
+        // Si el token es inválido (401), limpiar la sesión y redirigir a login
+        if (response.status === 401) {
+          console.log('[redirectAfterAuth] Token invalid, clearing session');
+          removeToken();
+          localStorage.removeItem('user');
+          window.location.href = '/login?error=session_expired';
+          return;
+        }
+
+        // Para otros errores, ir a pricing
         window.location.href = '/pricing?checkout=true';
         return;
       }
