@@ -11,8 +11,5 @@
     "start": "npm run start --prefix apps/home",
     "lint": "npm run lint --prefix apps/home",
     "typecheck": "npm run typecheck --prefix apps/home"
-  },
-  "dependencies": {
-    "next": "16.0.10"
   }
 }
