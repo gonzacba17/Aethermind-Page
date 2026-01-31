@@ -14,6 +14,6 @@
     "postinstall": "cd apps/home && npm install"
   },
   "dependencies": {
-    "next": "15.1.3"
+    "next": "15.1.11"
   }
 }
