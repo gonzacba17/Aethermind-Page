@@ -1,0 +1,19 @@
+{
+  "name": "aethermind-landing",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --prefix apps/home",
+    "build": "npm run build --prefix apps/home",
+    "start": "npm run start --prefix apps/home",
+    "lint": "npm run lint --prefix apps/home",
+    "typecheck": "npm run typecheck --prefix apps/home",
+    "postinstall": "cd apps/home && npm install"
+  },
+  "dependencies": {
+    "next": "15.1.3"
+  }
+}
