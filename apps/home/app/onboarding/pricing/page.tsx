@@ -34,18 +34,20 @@ export default function OnboardingPricing() {
 
   const handleSelectPlan = (planId: string) => {
     // Save selected plan to localStorage with timestamp
-    // This allows redirectAfterAuth to bypass membership check temporarily
     const onboardingData = {
       selectedPlan: planId,
       timestamp: Date.now(),
       completed: true
     }
     localStorage.setItem('onboarding_payment', JSON.stringify(onboardingData))
-    
+
+    // Mark marketing onboarding as seen
+    localStorage.setItem('onboarding_marketing_seen', 'true')
+
     console.log('[Onboarding Pricing] Plan selected:', planId)
-    
-    // Redirect to external dashboard
-    window.location.href = 'https://aethermind-agent-os-dashboard.vercel.app/dashboard'
+
+    // Redirect to setup page for API key and SDK installation
+    router.push('/onboarding/setup')
   }
 
   return (
